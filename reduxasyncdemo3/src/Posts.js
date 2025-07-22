@@ -1,24 +1,29 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { FETCH_POSTS_START, FETCH_POSTS_SUCCESS, FETCH_POSTS_FAILURE } from './postsReducer';
+
+// Thunk function moved here for demonstration purposes.
+// In real projects, keep thunks in separate files for better organization.
+const FETCH_POSTS_START = 'FETCH_POSTS_START';
+const FETCH_POSTS_SUCCESS = 'FETCH_POSTS_SUCCESS';
+const FETCH_POSTS_FAILURE = 'FETCH_POSTS_FAILURE';
+
+export const fetchPosts = () => async (dispatch) => {
+    dispatch({ type: FETCH_POSTS_START });
+    try {
+        const response = await fetch('https://jsonplaceholder.typicode.com/posts');
+        const data = await response.json();
+        dispatch({ type: FETCH_POSTS_SUCCESS, payload: data });
+    } catch (err) {
+        dispatch({ type: FETCH_POSTS_FAILURE, payload: err.message });
+    }
+};
 
 function Posts() {
     const dispatch = useDispatch();
     const { items, status, error } = useSelector((state) => state);
 
-    const fetchPosts = async () => {
-        dispatch({ type: FETCH_POSTS_START });
-        try {
-            const response = await fetch('https://jsonplaceholder.typicode.com/posts');
-            const data = await response.json();
-            dispatch({ type: FETCH_POSTS_SUCCESS, payload: data });
-        } catch (err) {
-            dispatch({ type: FETCH_POSTS_FAILURE, payload: err.message });
-        }
-    };
-
     useEffect(() => {
-        fetchPosts();
+        dispatch(fetchPosts());
     }, [dispatch]);
 
     if (status === 'loading') return <div className="flex justify-center items-center h-64 text-lg font-semibold">Loading...</div>;
